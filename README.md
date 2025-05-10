@@ -31,17 +31,25 @@ catbox ./path/to/file [OPTION]
 - `--help`  
   show usage information
 
+- `--anon`  
+  upload anonymously (no userhash)
+
 - `--userhash <hash>`  
-  use a specific Catbox userhash for uploads (prompts to save as default if not set)
+  use a specific Catbox userhash for uploads (prompts to save as default if not set). if used without a file, saves the userhash as default
 
 - `--time <time>`  
   upload to Litterbox (temporary), valid times: `1h`, `12h`, `24h`, `72h`
 
 ### examples 🔽
 
-**upload a file permanently to Catbox (anonymously):**
+**upload a file permanently to Catbox:**
 ```sh
 catbox ./myfile.png
+```
+
+**upload a file permanently to Catbox anonymously:**
+```sh
+catbox ./myfile.png --anon
 ```
 
 **upload a file to Catbox with your userhash:**

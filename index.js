@@ -10,7 +10,7 @@ import got from "got";
 
 // option parser
 const rl = createInterface({ input: process.stdin, output: process.stdout });
-const options = { help: false, userhash: null, time: null, filePath: null };
+const options = { help: false, anon: false, userhash: null, time: null, filePath: null };
 const args = process.argv.slice(2);
 if (args.includes('--help')) {
     options.help = true;
@@ -23,6 +23,8 @@ if (args.includes('--help')) {
         } else if (arg === '--time') {
             options.time = args[i + 1];
             i++;
+        } else if (arg === '--anon') {
+            options.anon = true;
         } else if (!arg.startsWith('--')) {
             options.filePath = arg;
         };
@@ -30,7 +32,7 @@ if (args.includes('--help')) {
 };
 const argFlags = [options.help, options.userhash, options.time].filter(Boolean);
 if (argFlags.length > 1) {
-    console.error("Only one option (--help, --userhash, or --time) can be used at a time.");
+    console.error("Only one option (--help, --anon, --userhash, or --time) can be used at a time.");
     process.exit(1);
 };
 
@@ -50,8 +52,13 @@ const lightPink = chalk.hex("#F5A9B8");
 ${pink("Uploads the file to Catbox and returns the URL.")}
 ${lightPink("Options:")}
     --help: ${pink("Show usage information.")}
-    --userhash ${purple("<hash>")}: ${pink("Use a specific Catbox userhash for uploads (prompts to save as default if not set).")}
+    --anon: ${pink("Upload anonymously (no userhash).")}
+    --userhash ${purple("<hash>")}: ${pink("Use a specific Catbox userhash for uploads (prompts to save as default if not set). If used without a file, saves the userhash as default.")}
     --time ${purple("<time>")}: ${pink(`Upload to Litterbox (temporary), valid times: "${validTimes.join('", "')}".`)}`);
+        process.exit(0);
+    } else if (options.userhash && !options.filePath) {
+        writeFileSync(".userhash", options.userhash, "utf8");
+        console.log(purple(`Userhash "${options.userhash}" saved as default.`));
         process.exit(0);
     } else if (options.filePath) { // file upload
         const filePath = normalize(options.filePath);
@@ -106,14 +113,14 @@ ${lightPink("Options:")}
                 process.exit(1);
             };
         } else { // catbox
-            const userhash = options.userhash || defaultHash; // use the userhash from the command line or the default one
+            const userhash = options.anon ? "" : (options.userhash || defaultHash); // use the userhash from the command line or the default one
             if (userhash && options.userhash && !defaultHash) { // prompt to save userhash if not already saved
                 const saveHash = await rl.question(purple(`No default userhash. Would you like to set the inputted userhash "${userhash}" as default for future uploads? (y/n) `));
                 if (saveHash.toLowerCase().startsWith("y")) {
                     writeFileSync(".userhash", userhash, "utf8");
                     console.log(purple(`Userhash "${userhash}" saved as default.`));
                 } else console.log(purple(`Userhash "${userhash}" not saved.`));
-            } else if (!userhash) { // prompt to upload anonymously or cancel
+            } else if (!userhash && !options.anon) { // prompt to upload anonymously or cancel
                 const uploadAnyways = await rl.question(purple(`No userhash inputted. Would you like to upload anyways? (y/n) `));
                 if (uploadAnyways.toLowerCase().startsWith("y")) {
                     console.log(purple(`Uploading anonymously.`));
@@ -121,7 +128,7 @@ ${lightPink("Options:")}
                     console.log(purple(`Upload cancelled. You may set a default userhash by uploading again using --userhash followed by your userhash.`));
                     process.exit(0);
                 };
-            };
+            } else if (options.anon) console.log(purple(`Uploading anonymously.`));
 
             try { // uploading
                 if (stats.size > 209715200) {
