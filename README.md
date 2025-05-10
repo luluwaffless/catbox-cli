@@ -11,6 +11,7 @@ a simple CLI tool to upload files to [catbox.moe](https://catbox.moe) or [litter
 - upload files up to 200MB to Catbox (permanent)
 - upload files up to 1GB to Litterbox (temporary, with configurable expiry)
 - supports Catbox userhash for uploads to your account
+- allows anonymous uploads to Catbox
 - progress indicator during upload
 
 ## installation 📥
