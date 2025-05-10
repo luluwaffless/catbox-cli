@@ -1,12 +1,13 @@
 {
   "name": "catbox-cli",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "index.js",
   "type": "module",
   "bin": {
     "catbox": "./index.js"
   },
   "dependencies": {
+    "chalk": "^5.4.1",
     "form-data": "^4.0.2",
     "got": "^12.6.1"
   },
@@ -14,7 +15,15 @@
     "type": "git",
     "url": "git+https://github.com/luluwaffless/catbox-cli.git"
   },
-  "keywords": ["catbox", "catbox.moe", "cli", "uploader", "upload", "file", "files"],
+  "keywords": [
+    "catbox",
+    "catbox.moe",
+    "cli",
+    "uploader",
+    "upload",
+    "file",
+    "files"
+  ],
   "author": "luluwaffless",
   "license": "AGPL-3.0-only",
   "description": "a simple CLI tool to upload files to catbox.moe or litterbox.catbox.moe"
