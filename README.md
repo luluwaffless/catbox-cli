@@ -18,7 +18,7 @@ a simple CLI tool to upload files to [catbox.moe](https://catbox.moe) or [litter
 
 simply install the package with npm!
 ```sh
-npm install catbox-cli
+npm install catbox-cli -g
 ```
 
 ## usage 💻

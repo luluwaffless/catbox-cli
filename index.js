@@ -4,6 +4,8 @@
 import { readFileSync, writeFileSync, statSync, createReadStream } from "node:fs";
 import { createInterface } from "node:readline/promises";
 import { basename, normalize } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import FormData from "form-data";
 import chalk from "chalk";
 import got from "got";
@@ -45,7 +47,22 @@ const lightPink = chalk.hex("#F5A9B8");
 
 // code begin
 (async () => {
-    const defaultHash = readFileSync(".userhash", "utf8");
+    // userhash file
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const userhashPath = join(__dirname, ".userhash");
+    let defaultHash;
+    try {
+        defaultHash = readFileSync(userhashPath, "utf8");
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            writeFileSync(userhashPath, "", "utf8");
+        } else {
+            console.error(purple("Error reading userhash file:"), err);
+            process.exit(1);
+        };
+    };
+    
     const validTimes = ['1h', '12h', '24h', '72h'];
     if (options.help) { // help message
         console.log(`${lightBlue("Usage:")} ${lightPink("catbox")} ./path/to/file ${blue("[OPTION]")}
