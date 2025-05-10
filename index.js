@@ -74,7 +74,7 @@ ${lightPink("Options:")}
     --time ${purple("<time>")}: ${pink(`Upload to Litterbox (temporary), valid times: "${validTimes.join('", "')}".`)}`);
         process.exit(0);
     } else if (options.userhash && !options.filePath) {
-        writeFileSync(".userhash", options.userhash, "utf8");
+        writeFileSync(userhashPath, options.userhash, "utf8");
         console.log(purple(`Userhash "${options.userhash}" saved as default.`));
         process.exit(0);
     } else if (options.filePath) { // file upload
@@ -134,7 +134,7 @@ ${lightPink("Options:")}
             if (userhash && options.userhash && !defaultHash) { // prompt to save userhash if not already saved
                 const saveHash = await rl.question(purple(`No default userhash. Would you like to set the inputted userhash "${userhash}" as default for future uploads? (y/n) `));
                 if (saveHash.toLowerCase().startsWith("y")) {
-                    writeFileSync(".userhash", userhash, "utf8");
+                    writeFileSync(userhashPath, userhash, "utf8");
                     console.log(purple(`Userhash "${userhash}" saved as default.`));
                 } else console.log(purple(`Userhash "${userhash}" not saved.`));
             } else if (!userhash && !options.anon) { // prompt to upload anonymously or cancel
