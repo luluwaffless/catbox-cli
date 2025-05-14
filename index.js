@@ -6,6 +6,8 @@ import { createInterface } from "node:readline/promises";
 import { basename, normalize } from "node:path";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import readline from "node:readline";
+import stripAnsi from "strip-ansi";
 import FormData from "form-data";
 import chalk from "chalk";
 import got from "got";
@@ -39,11 +41,30 @@ if (argFlags.length > 1) {
 };
 
 // colors
+const darkGray = chalk.hex("#202020"); // 20 vision cupid hit me cupid hit me with precision i wonder if you look both ways when you cross my mind
 const blue = chalk.hex("#333EBD");
 const lightBlue = chalk.hex("#5BCEFA");
 const purple = chalk.hex("#BE18D6");
 const pink = chalk.hex("#FF75A2");
 const lightPink = chalk.hex("#F5A9B8");
+
+// output functions
+let prevLength = 0;
+const write = (text) => {
+    if (text.length < prevLength) {
+        readline.clearLine(process.stdout, 0);
+        readline.cursorTo(process.stdout, 0);
+        process.stdout.write(text);
+    } else {
+        process.stdout.write("\r" + text);
+    };
+    prevLength = text.length;
+};
+const progressBar = (text, percentage) => {
+    const barWidth = Math.max(((process.stdout.columns || 50) - stripAnsi(text).length + 1), 6) - 4;
+    const filledLength = Math.floor(barWidth * percentage);
+    return `[${pink.bgHex("#FF75A2")("#").repeat(filledLength)}${darkGray("-").repeat(barWidth - filledLength)}]`;
+};
 
 // code begin
 (async () => {
@@ -62,7 +83,7 @@ const lightPink = chalk.hex("#F5A9B8");
             process.exit(1);
         };
     };
-    
+
     const validTimes = ['1h', '12h', '24h', '72h'];
     if (options.help) { // help message
         console.log(`${lightBlue("Usage:")} ${lightPink("catbox")} ./path/to/file ${blue("[OPTION]")}
@@ -111,15 +132,24 @@ ${lightPink("Options:")}
                         });
                     });
                     let uploaded = 0;
+                    let lastChunks = 0;
+                    let mbps = 0;
+                    let mbpsInterval = setInterval(() => {
+                        mbps = (lastChunks * 8) / 1048576;
+                        lastChunks = 0;
+                    }, 1000);
                     form.on("data", chunk => {
                         uploaded += chunk.length;
-                        process.stdout.write(`\rUploading ${pink(`"${fileName}"`)} to ${lightBlue("Litterbox")} for ${options.time}... ${purple(`(${((uploaded / totalLength) * 100).toFixed(2)}%)`)}`);
+                        lastChunks += chunk.length;
+                        const progressStr = `Uploading ${pink(`"${fileName}"`)} to ${lightBlue("Litterbox")} for ${options.time}... ${purple(`(${((uploaded / totalLength) * 100).toFixed(2)}%) ${blue(`[${mbps.toFixed(2)} Mb/s]`)}`)}`;
+                        write(`${progressStr} ${progressBar(progressStr, uploaded / totalLength)}`);
                     });
                     const response = await got.post("https://litterbox.catbox.moe/resources/internals/api.php", {
                         body: form,
                         headers: form.getHeaders(),
                     }).text();
-                    console.log(`\nUploaded ${pink(`"${fileName}"`)} successfully! URL: ${blue(response)}`);
+                    clearInterval(mbpsInterval);
+                    write(`Uploaded ${pink(`"${fileName}"`)} successfully!\nURL: ${blue(response)}`);
                     process.exit(0);
                 } catch (err) {
                     console.error(purple("\nError uploading file:"), err);
@@ -164,15 +194,24 @@ ${lightPink("Options:")}
                     });
                 });
                 let uploaded = 0;
+                let lastChunks = 0;
+                let mbps = 0;
+                let mbpsInterval = setInterval(() => {
+                    mbps = (lastChunks * 8) / 1048576;
+                    lastChunks = 0;
+                }, 1000);
                 form.on("data", chunk => {
+                    lastChunks += chunk.length;
                     uploaded += chunk.length;
-                    process.stdout.write(`\rUploading ${pink(`"${fileName}"`)} to ${lightPink("Catbox")}... ${purple(`(${((uploaded / totalLength) * 100).toFixed(2)}%)`)}`);
+                    const progressStr = `Uploading ${pink(`"${fileName}"`)} to ${lightPink("Catbox")}... ${purple(`(${((uploaded / totalLength) * 100).toFixed(2)}%)`)} ${blue(`[${mbps.toFixed(2)} Mb/s]`)}`;
+                    write(`${progressStr} ${progressBar(progressStr, uploaded / totalLength)}`);
                 });
                 const response = await got.post("https://catbox.moe/user/api.php", {
                     body: form,
                     headers: form.getHeaders(),
                 }).text();
-                console.log(`\nUploaded ${pink(`"${fileName}"`)} successfully! URL: ${blue(response)}`);
+                clearInterval(mbpsInterval);
+                write(`Uploaded ${pink(`"${fileName}"`)} successfully!\nURL: ${blue(response)}`);
                 process.exit(0);
             } catch (err) {
                 console.error(purple("\nError uploading file:"), err);
