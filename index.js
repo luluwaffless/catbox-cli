@@ -63,7 +63,7 @@ const write = (text) => {
 const progressBar = (text, percentage) => {
     const barWidth = Math.max(((process.stdout.columns || 50) - stripAnsi(text).length + 1), 6) - 4;
     const filledLength = Math.floor(barWidth * percentage);
-    return `[${pink.bgHex("#FF75A2")("#").repeat(filledLength)}${darkGray("-").repeat(barWidth - filledLength)}]`;
+    return `[${pink("▒").repeat(filledLength)}${darkGray("-").repeat(barWidth - filledLength)}]`;
 };
 
 // code begin
